@@ -191,10 +191,10 @@ public abstract class GenericEntityBean implements GenericEntity {
      */
     public Method searchMethod(Method[] methods, String name) {
         if ((methods != null) && (name != null)) {
-            for (int i = 0; i < methods.length; i++) {
-                String nameMethod = methods[i].getName();
+            for (Method method : methods) {
+                String nameMethod = method.getName();
                 if (nameMethod.equals(name)) {
-                    return methods[i];
+                    return method;
                 }
             }
         }
@@ -211,16 +211,16 @@ public abstract class GenericEntityBean implements GenericEntity {
         Set<String> dataSet = new HashSet<String>();
         Class<?>[] interfaces = myClass.getInterfaces();
         if (interfaces != null) {
-            for (int i = 0; i < interfaces.length; i++) {
-                if (!dataSet.contains(interfaces[i].toString())) {
-                    dataSet.addAll(getInterfaces(interfaces[i]));
+            for (Class<?> intf : interfaces) {
+                if (!dataSet.contains(intf.toString())) {
+                    dataSet.addAll(getInterfaces(intf));
                 }
-                if (interfaces[i].getSuperclass() != null) {
-                    dataSet.addAll(getInterfaces(interfaces[i].getSuperclass()));
+                if (intf.getSuperclass() != null) {
+                    dataSet.addAll(getInterfaces(intf.getSuperclass()));
                 }
-                dataSet.add(interfaces[i].getName());
-                if (interfaces[i].getSuperclass() != null) {
-                    dataSet.add(interfaces[i].getSuperclass().getName());
+                dataSet.add(intf.getName());
+                if (intf.getSuperclass() != null) {
+                    dataSet.add(intf.getSuperclass().getName());
                 }
             }
         }
@@ -265,8 +265,12 @@ public abstract class GenericEntityBean implements GenericEntity {
      * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
+
     @Override
     public boolean equals(Object obj) {
+        if (obj == null || !GenericEntity.class.isInstance(obj)){
+            return false;
+        }
         if (this == obj) {
             return true;
         }
@@ -295,12 +299,12 @@ public abstract class GenericEntityBean implements GenericEntity {
         Field[] fields = this.getClass().getDeclaredFields();
         String result = "";
         if (fields != null) {
-            for (int i = 0; i < fields.length; i++) {
-                if (isSimpleData(fields[i].getType())) {
-                    String nameMethod = "get" + fields[i].getName().substring(0, 1).toUpperCase() + fields[i].getName().substring(1);
+            for (Field field : fields) {
+                if (isSimpleData(field.getType())) {
+                    String nameMethod = "get" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
                     Method dtoSetMethod = this.getClass().getMethod(nameMethod);
                     result += (result.trim().length() > 0) ? "; " : "";
-                    String value = result += fields[i].getName() + "=" + dtoSetMethod.invoke(this);
+                    String value = result += field.getName() + "=" + dtoSetMethod.invoke(this);
                 }
             }
         }
@@ -317,11 +321,7 @@ public abstract class GenericEntityBean implements GenericEntity {
         if (object.isPrimitive()) {
             return true;
         }
-        if ((object.getName().contains("Integer")) || (object.getName().contains("Float")) || (object.getName().contains("Double")) || (object.getName().contains("Date")) || (object.getName().contains("Boolean"))
-                || (object.getName().contains("String"))) {
-            return true;
-        } else {
-            return false;
-        }
+        return (object.getName().contains("Integer")) || (object.getName().contains("Float")) || (object.getName().contains("Double")) || (object.getName().contains("Date")) || (object.getName().contains("Boolean"))
+           || (object.getName().contains("String"));
     }
 }

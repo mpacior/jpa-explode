@@ -5,7 +5,7 @@
     <groupId>org.gzlabs</groupId>
     <artifactId>jpa-explode</artifactId>
     <name>GZLabs - Spring JPA Explode</name>
-    <description>Library to explode JPA entity object with indicated deep</description>
+    <description>Library to calculate the number of nodes in a recursive manner given a JPA object and a deep value</description>
     <packaging>jar</packaging>
     <version>1.0</version>
 

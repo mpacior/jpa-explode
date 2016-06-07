@@ -2,7 +2,6 @@ package org.gzlabs.jpa.explode;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
-import org.springframework.data.domain.Page;
 
 public interface GenericEntity extends Serializable {
 
