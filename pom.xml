@@ -74,7 +74,7 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.3.0.M1</version>
+                <version>9.4.0.M0</version>
                 <configuration>
                     <jvmArgs>-Xms512m -Xmx1024m</jvmArgs>
                     <!--<extraJvmArgs>-XX:MaxPermSize=3072M -Xmx3072M -Xss2M</extraJvmArgs>-->
