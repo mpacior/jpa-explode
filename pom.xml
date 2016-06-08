@@ -55,41 +55,4 @@
         </dependency>
 
     </dependencies>
-
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-            <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*.gwt.xml</include>
-                    <include>**/client/**/*.java</include>
-                    <include>**/shared/**/*.java</include>
-                </includes>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.4.0.M0</version>
-                <configuration>
-                    <jvmArgs>-Xms512m -Xmx1024m</jvmArgs>
-                    <!--<extraJvmArgs>-XX:MaxPermSize=3072M -Xmx3072M -Xss2M</extraJvmArgs>-->
-                    <extraJvmArgs>-Xms512m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=512m</extraJvmArgs>
-                    <scanIntervalSeconds>3</scanIntervalSeconds>
-                    <webApp>
-                        <!--Contexto da aplicación--> 
-                        <contextPath>/panacea</contextPath>
-                    </webApp>
-                    <httpConnector>
-                        <!--host>localhost</host -->
-                        <port>9999</port>
-                    </httpConnector>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
