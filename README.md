@@ -1,2 +1,2 @@
 # jpa-explode
-Library to explode JPA entity object with indicated deep
+Library to calculate the number of nodes in a recursive manner given a JPA object and a deep value
