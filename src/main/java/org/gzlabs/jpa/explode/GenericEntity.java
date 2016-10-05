@@ -1,5 +1,6 @@
 package org.gzlabs.jpa.explode;
 
+
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
@@ -20,7 +21,7 @@ public interface GenericEntity extends Serializable {
      * @param includeList this parameter indicates whether the lists are included when making a explode (false by default)
      *
      * @return entity object with calculated entities
-     * @throws NoSuchMethodException
+     * 
      * @throws IllegalArgumentException
      * @throws SecurityException
      * @throws IllegalAccessException
@@ -30,6 +31,23 @@ public interface GenericEntity extends Serializable {
      * @throws Exception
      */
     public GenericEntity explode(Integer indexDeep, Boolean includeList) throws NoSuchMethodException, IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception;
+
+    
+		/**
+		 * Set to NULL all fields with @NotVisible annotation
+		 *
+		 * @return entity object without not visible fields
+		 * 
+		 * @throws NoSuchMethodException
+		 * @throws IllegalArgumentException
+		 * @throws SecurityException
+		 * @throws IllegalAccessException
+		 * @throws InvocationTargetException
+		 * @throws InstantiationException
+		 * @throws ClassNotFoundException
+		 * @throws Exception
+		 */		
+		public GenericEntity applyNotVisible() throws NoSuchMethodException, IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception;
 
     /**
      * Explode entity (default indexDeep to 1) query values ​​with related entities
