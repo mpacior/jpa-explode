@@ -47,7 +47,7 @@ public interface GenericEntity extends Serializable {
 		 * @throws ClassNotFoundException
 		 * @throws Exception
 		 */		
-		public GenericEntity applyNotVisible() throws NoSuchMethodException, IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception;
+		public <T extends GenericEntity> T applyNotVisible() throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception;
 
     /**
      * Explode entity (default indexDeep to 1) query values ​​with related entities

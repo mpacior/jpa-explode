@@ -12,8 +12,11 @@ import java.util.List;
 import java.util.Set;
 import org.gzlabs.jpa.explode.annotation.NotVisible;
 
+import org.hibernate.LazyInitializationException;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+
 
 
 @SuppressWarnings("serial")
@@ -46,12 +49,10 @@ public abstract class GenericEntityBean implements GenericEntity {
 		public GenericEntity explode(Integer indexDeep, Boolean includeList) throws NoSuchMethodException, IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception {
 				try {
 						List<Field> fields = GenericEntityBean.getAllFields(new ArrayList<Field>(), this.getClass());
-						// System.out.println("[indexDeep vale]: " + indexDeep);
 						if ((fields != null) && (!fields.isEmpty())) {
 								for (Field selectField : fields) {
 										selectField.setAccessible(true);
-										NotVisible isNotVisible = selectField.getAnnotation(NotVisible.class);
-										if (((GenericEntity.class.isAssignableFrom(selectField.getType()))) && (isNotVisible == null)) {
+										if (((GenericEntity.class.isAssignableFrom(selectField.getType())))) {
 												String nameGetMethod = "get" + selectField.getName().substring(0, 1).toUpperCase() + selectField.getName().substring(1);
 												Method getMethod = this.getClass().getMethod(nameGetMethod);
 												if ((indexDeep > 0) && (getMethod != null)) {
@@ -59,7 +60,7 @@ public abstract class GenericEntityBean implements GenericEntity {
 																selectField.set(this, ((GenericEntityBean) getMethod.invoke(this)).explode(indexDeep - 1));
 														}
 												}
-										} else if ((includeList) && (Collection.class.isAssignableFrom(selectField.getType())) && (isNotVisible == null)) {
+										} else if ((includeList) && (Collection.class.isAssignableFrom(selectField.getType()))) {
 												if ((indexDeep > 0) && (selectField.get(this) != null)) {
 														Collection collection = (Collection) selectField.get(this);
 														Iterator items = collection.iterator();
@@ -69,11 +70,10 @@ public abstract class GenericEntityBean implements GenericEntity {
 																		((GenericEntityBean) nextItem).explode(indexDeep - 1);
 																}
 														}
+														selectField.set(this, collection);
 												}
-										} else if ((!includeList) && (Collection.class.isAssignableFrom(selectField.getType())) && (isNotVisible == null)) {
+										} else if ((!includeList) && (Collection.class.isAssignableFrom(selectField.getType()))) {
 												// selectField.set(this, null);
-										} else if (isNotVisible != null) {
-												selectField.set(this, null);
 										}
 								}
 						}
@@ -100,7 +100,7 @@ public abstract class GenericEntityBean implements GenericEntity {
 		 * Set to NULL all fields with @NotVisible annotation
 		 *
 		 * @return entity object without not visible fields
-		 * 
+		 * @return
 		 * @throws IllegalArgumentException
 		 * @throws SecurityException
 		 * @throws IllegalAccessException
@@ -109,34 +109,144 @@ public abstract class GenericEntityBean implements GenericEntity {
 		 * @throws ClassNotFoundException
 		 * @throws Exception
 		 */
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
-		public GenericEntity applyNotVisible() throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception {
+		public <T extends GenericEntity> T applyNotVisible() throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception {
 				try {
 						List<Field> fields = GenericEntityBean.getAllFields(new ArrayList<Field>(), this.getClass());
 						if ((fields != null) && (!fields.isEmpty())) {
 								for (Field selectField : fields) {
 										selectField.setAccessible(true);
 										NotVisible isNotVisible = selectField.getAnnotation(NotVisible.class);
-										if (isNotVisible != null) {
+										if ((isNotVisible == null) && ((GenericEntity.class.isAssignableFrom(selectField.getType())))) {
+												String nameGetMethod = "get" + selectField.getName().substring(0, 1).toUpperCase() + selectField.getName().substring(1);
+												Method getMethod = this.getClass().getMethod(nameGetMethod);
+												if (getMethod != null) {
+														try {
+																if (getMethod.invoke(this) != null) {
+																		selectField.set(this, ((GenericEntityBean) getMethod.invoke(this)).applyNotVisible());
+																}
+														} catch (LazyInitializationException e) {
+																selectField.set(this, null);
+														}
+												}
+										} else if ((isNotVisible == null) && (Collection.class.isAssignableFrom(selectField.getType()))) {
+												if (selectField.get(this) != null) {
+														Collection collection = (Collection) selectField.get(this);
+														try {
+																Iterator items = collection.iterator();
+																while (items != null && items.hasNext()) {
+																		Object nextItem = items.next();
+																		if (nextItem != null) {
+																				((GenericEntityBean) nextItem).applyNotVisible();
+																		}
+																}
+														} catch (LazyInitializationException e) {
+														}
+														selectField.set(this, collection);
+												}
+										} else if (isNotVisible != null) {
 												selectField.set(this, null);
 										}
 								}
 						}
-						return this;
+						return ((T) this);
+
+				} catch (LazyInitializationException | InvocationTargetException e) {
+						return null;
 				} catch (IllegalArgumentException e) {
-						LoggerFactory.getLogger(getClass()).error(e.getMessage());
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
 						throw new IllegalArgumentException(e);
 				} catch (SecurityException e) {
-						LoggerFactory.getLogger(getClass()).error(e.getMessage());
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
 						throw new SecurityException(e);
 				} catch (IllegalAccessException e) {
-						LoggerFactory.getLogger(getClass()).error(e.getMessage());
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
 						throw new IllegalAccessException(e.getMessage());
 				} catch (Exception e) {
-						LoggerFactory.getLogger(getClass()).error(e.getMessage());
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
 						throw new Exception(e);
 				}
 		}
+
+		/**
+		 * Set to NULL all fields with @NotVisible annotation
+		 *
+		 * @param entity list
+		 * @return entity object without not visible fields
+		 * @throws IllegalArgumentException
+		 * @throws SecurityException
+		 * @throws IllegalAccessException
+		 * @throws InvocationTargetException
+		 * @throws InstantiationException
+		 * @throws ClassNotFoundException
+		 * @throws Exception
+		 */
+		public static <T extends GenericEntity> List<T> applyNotVisible(List<T> entities) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception {
+				try {
+						if (entities == null)
+								return entities;
+						List<T> newEntities = new ArrayList<T>();
+						for (T entity : entities) {
+								newEntities.add(entity.applyNotVisible());
+						}
+						return newEntities;
+
+				} catch (InvocationTargetException e) {
+						return null;
+				} catch (IllegalArgumentException e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new IllegalArgumentException(e);
+				} catch (SecurityException e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new SecurityException(e);
+				} catch (IllegalAccessException e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new IllegalAccessException(e.getMessage());
+				} catch (Exception e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new Exception(e);
+				}
+		}
+		
+		/**
+		 * Set to NULL all fields with @NotVisible annotation
+		 *
+		 * @param entity page list
+		 * @return entity object without not visible fields
+		 * @throws IllegalArgumentException
+		 * @throws SecurityException
+		 * @throws IllegalAccessException
+		 * @throws InvocationTargetException
+		 * @throws InstantiationException
+		 * @throws ClassNotFoundException
+		 * @throws Exception
+		 */
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public static <T extends GenericEntity> Page<T> applyNotVisibles(Page<T> pageEntities) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, Exception {
+				try {
+						if ((pageEntities == null) || (pageEntities.getContent() == null)){
+								return pageEntities;
+						}
+						return new PageImpl(applyNotVisible(pageEntities.getContent()), pageEntities.nextPageable(), pageEntities.getTotalElements());
+
+				} catch (InvocationTargetException e) {
+						return null;
+				} catch (IllegalArgumentException e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new IllegalArgumentException(e);
+				} catch (SecurityException e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new SecurityException(e);
+				} catch (IllegalAccessException e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new IllegalAccessException(e.getMessage());
+				} catch (Exception e) {
+						LoggerFactory.getLogger(GenericEntity.class).error(e.getMessage());
+						throw new Exception(e);
+				}
+		}
+
 
 		/**
 		 * Explode entity (default indexDeep to 1) query values ​​with related entities
